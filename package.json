@@ -1,0 +1,33 @@
+{
+  "name": "public-banner-api",
+  "version": "1.0.0",
+  "description": "A Typescript wrapper for the Banner API used by many universities",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint . --ext .ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shanecranor/public-banner-api.git"
+  },
+  "keywords": [
+    "banner",
+    "education",
+    "scraping"
+  ],
+  "author": "Shane",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shanecranor/public-banner-api/issues"
+  },
+  "homepage": "https://github.com/shanecranor/public-banner-api#readme",
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@typescript-eslint/eslint-plugin": "^7.4.0",
+    "@typescript-eslint/parser": "^7.4.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.3"
+  }
+}
