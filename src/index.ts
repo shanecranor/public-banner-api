@@ -1,5 +1,5 @@
 import { Term, Subject } from "./bannerResponseTypes";
-
+import axios from "axios";
 async function testFetch() {
   const initSearch = await fetch(
     "https://bannerssb9.mines.edu/StudentRegistrationSsb/ssb/term/search?mode=search",
@@ -39,7 +39,50 @@ async function testFetch() {
   console.log(data);
 }
 
-testFetch();
+async function fetchData() {
+  // First POST request to initialize the search and extract cookies
+  try {
+    const initSearchResponse = await axios.post(
+      "https://bannerssb9.mines.edu/StudentRegistrationSsb/ssb/term/search?mode=search",
+      "term=202480&studyPath=&studyPathText=&startDatepicker=&endDatepicker=",
+      {
+        headers: {
+          accept: "*/*",
+          "accept-language": "en-US,en;q=0.9",
+          "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+        },
+      }
+    );
+
+    // Extract cookies from the response
+    // Note: Axios does not provide direct access to the 'Set-Cookie' header due to browser security reasons.
+    // You would need to handle cookies differently in a browser environment or use server-side handling or a library that supports it.
+    const cookies = initSearchResponse.headers["set-cookie"];
+    console.log("cookies");
+    console.log(cookies);
+
+    // Second GET request using extracted cookies
+    const searchResponse = await axios.get(
+      "https://bannerssb9.mines.edu/StudentRegistrationSsb/ssb/searchResults/searchResults?txt_term=202480&startDatepicker=&endDatepicker=&pageOffset=0&pageMaxSize=10&sortColumn=subjectDescription&sortDirection=asc",
+      {
+        headers: {
+          accept: "application/json, text/javascript, */*; q=0.01",
+          "accept-language": "en-US,en;q=0.9",
+          cookie: cookies || "",
+          Referer:
+            "https://bannerssb9.mines.edu/StudentRegistrationSsb/ssb/classSearch/classSearch",
+          "Referrer-Policy": "strict-origin-when-cross-origin",
+        },
+      }
+    );
+
+    console.log(searchResponse.data);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+}
+fetchData();
+// testFetch();
 export type Options = {
   offset?: number;
   max?: number;
