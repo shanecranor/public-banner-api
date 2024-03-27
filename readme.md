@@ -61,18 +61,38 @@ Initializes a search session for a specific term ID, creating a session token th
 
 ### `searchCourses(params, options?): Promise<SearchResponse>`
 
-Conducts a course search with a comprehensive set of parameters.
+Conducts a detailed search for courses based on specific criteria. This method can filter courses by subject, course number, term, and more. It can also handle pagination and sorting of the search results.
 
-- **Parameters**:
-  - `params`: Object containing various search parameters like `txt_subject`, `txt_courseNumber`, `txt_term`, etc.
-  - `options` (Optional): Object with `initSearch` indicating whether to initialize a search session.
-- **Returns**: A promise that resolves to the search response.
+#### Parameters
+
+- **`params`: Object** - Specifies the criteria for filtering the course search.
+
+  - `txt_subject` (optional): The subject code to filter courses (e.g., "CS" for Computer Science).
+  - `txt_courseNumber` (optional): The course number to further refine the search (e.g., 101).
+  - `txt_term`: The term ID to search within (e.g., 202480). This parameter is required and must match the term ID initialized with `initSearch`.
+  - `startDatepicker` (optional)
+  - `endDatepicker` (optional)
+  - `pageOffset` (optional): The offset for pagination, useful for fetching courses in chunks.
+  - `pageMaxSize` (optional): The maximum number of courses to return in one response. Must be between 1 and 500.
+  - `sortColumn` (optional): The column to sort the search results by.
+  - `sortDirection` (optional): The direction for sorting, either `"asc"` for ascending or `"desc"` for descending.
+
+- **`options` (Optional): Object** - Additional options for the course search.
+
+  - `initSearch`: A boolean for choosing to auto init the search by calling `initSearch` with the txt_term, this is false by default
+
+- **Returns**:
+  - **`Promise<SearchResponse>`**: A promise that, when resolved, returns a `SearchResponse` object containing the results of the search operation. This object includes details such as the total count of found courses, pagination details, and an array of courses that match the search criteria.
+
+<!--
+
+not 100% sure on this
 
 ### `resetForm(): Promise<boolean>`
 
 Resets any data from the last search to allow for a new search operation.
 
-- **Returns**: A promise that resolves to a boolean indicating whether the form was successfully reset.
+- **Returns**: A promise that resolves to a boolean indicating whether the form was successfully reset. -->
 
 ### `bannerFetch(method, endpoint, queryParams, headers, body): Promise<any>`
 
