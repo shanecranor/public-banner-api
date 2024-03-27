@@ -1,16 +1,49 @@
 import { Term, Subject } from "./bannerResponseTypes";
 
-export type TermQueryParams = {
-  offset: number;
-  max: number;
-  searchTerm: string;
-};
+async function testFetch() {
+  const initSearch = await fetch(
+    "https://bannerssb9.mines.edu/StudentRegistrationSsb/ssb/term/search?mode=search",
+    {
+      headers: {
+        accept: "*/*",
+        "accept-language": "en-US,en;q=0.9",
+        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+        // "Referrer-Policy": "strict-origin-when-cross-origin",
+      },
+      body: "term=202480&studyPath=&studyPathText=&startDatepicker=&endDatepicker=",
+      method: "POST",
+    }
+  );
+  // extract cookies
+  const cookies = initSearch.headers.get("set-cookie");
+  console.log("cookies");
+  console.log(cookies);
+  const searchResponse = await fetch(
+    //"https://banner-9.mines.rocks/StudentRegistrationSsb/ssb/searchResults/searchResults?txt_term=202480&startDatepicker=&endDatepicker=&pageOffset=0&pageMaxSize=10&sortColumn=subjectDescription&sortDirection=asc",
+    "https://bannerssb9.mines.edu/StudentRegistrationSsb/ssb/searchResults/searchResults?txt_term=202480&startDatepicker=&endDatepicker=&pageOffset=0&pageMaxSize=10&sortColumn=subjectDescription&sortDirection=asc",
+    {
+      headers: {
+        accept: "application/json, text/javascript, */*; q=0.01",
+        "accept-language": "en-US,en;q=0.9",
+        cookie: cookies || "",
+        //"JSESSIONID=C5369E5ABC31247A733A2C31A84425AD; Path=/StudentRegistrationSsb; HttpOnly; Secure, BIGipServerbanner-ssb-prod-01_pool=!A4ncBNnch0I5PpIO13Cp8v0Ue2fC1aLEYHswudLztfhs1rMF+xALc4lJnrM/spK53h+tGigeeK9UDHU=  path=/; Httponly; Secure",
+        Referer:
+          "https://bannerssb9.mines.edu/StudentRegistrationSsb/ssb/classSearch/classSearch",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+      },
+      body: null,
+      method: "GET",
+    }
+  );
+  const data = await searchResponse.json();
+  console.log(data);
+}
 
-export type SubjectQueryParams = {
-  term: string;
-  searchTerm: string;
-  offset: number;
-  max: number;
+testFetch();
+export type Options = {
+  offset?: number;
+  max?: number;
+  searchTerm?: string;
 };
 
 export class BannerAPI {
@@ -36,11 +69,12 @@ export class BannerAPI {
    * @param options.searchTerm - An optional search term.
    * @returns A promise that resolves to an array of terms.
    */
-  async getTerms(options: TermQueryParams): Promise<Term[]> {
+  async getTerms(options: Options = {}): Promise<Term[]> {
+    const { offset = 1, max = 10, searchTerm = "" } = options;
     const queryParams = {
-      offset: options.offset.toString(),
-      max: options.max.toString(),
-      searchTerm: options.searchTerm,
+      offset: offset.toString(),
+      max: max.toString(),
+      searchTerm: searchTerm,
     };
     const response = await this.bannerFetch(
       "GET",
@@ -52,20 +86,20 @@ export class BannerAPI {
 
   /**
    * Retrieves subjects based on the provided query parameters. Does not require a session token.
-   *
+   * @param termId - The term ID for which to search.
    * @param options - The query parameters for retrieving subjects.
-   * @param options.term - The term ID for which to search.
    * @param options.searchTerm - An optional search term.
    * @param options.offset - The page offset.
    * @param options.max - The page size.
    * @returns A promise that resolves to an array of subjects.
    */
-  async getSubjects(options: SubjectQueryParams): Promise<Subject[]> {
+  async getSubjects(termId: string, options: Options): Promise<Subject[]> {
+    const { searchTerm = "", offset = 1, max = 10 } = options;
     const queryParams = {
-      term: options.term,
-      searchTerm: options.searchTerm,
-      offset: options.offset.toString(),
-      max: options.max.toString(),
+      term: termId,
+      searchTerm: searchTerm,
+      offset: offset.toString(),
+      max: max.toString(),
     };
     const response = await this.bannerFetch(
       "GET",
@@ -78,20 +112,21 @@ export class BannerAPI {
   /**
    * Initializes a search with the specified term. Creates/Auths a session token.
    *
-   * @param options - The search options.
-   * @param options.term - The search term ID.
+   * @param termId - The search term ID.
    * @returns A promise that resolves to a boolean indicating if the request was successful.
    */
-  async initSearch(options: { term: number }): Promise<boolean> {
-    const queryParams = {
-      term: options.term.toString(),
-    };
+  async initSearch(termId: number): Promise<boolean> {
+    const formData = new FormData();
+    formData.append("term", termId.toString());
+
     const response = await this.bannerFetch(
       "POST",
       "/term/search",
-      queryParams
+      {},
+      {},
+      formData
     );
-    const lastSearchTerm = options.term.toString();
+    this.lastSearchTerm = termId.toString();
     // TODO: make this less bad
     return Boolean(response);
   }
@@ -122,7 +157,7 @@ export class BannerAPI {
       txt_subject?: string;
       txt_courseNumber?: number;
       txt_term: number;
-      startDatepicker: string;
+      startDatepicker?: string;
       endDatepicker?: string;
       pageOffset?: number;
       pageMaxSize?: number;
@@ -136,20 +171,26 @@ export class BannerAPI {
       txt_courseNumber: "",
       startDatepicker: "",
       endDatepicker: "",
-      pageOffset: 1,
+      pageOffset: 0,
       pageMaxSize: 10,
       sortColumn: "",
       sortDirection: "asc",
     };
+
     const queryParams = { ...defaultParams, ...params };
+
+    if (queryParams.pageMaxSize < 1 || queryParams.pageMaxSize > 500) {
+      throw Error("pageMaxSize must be between 1 and 500");
+    }
+    // set the search term
+    if (options?.initSearch) {
+      await this.initSearch(queryParams.txt_term);
+    }
     // convert query params to strings
     const stringQueryParams = Object.fromEntries(
       Object.entries(queryParams).map(([key, value]) => [key, value.toString()])
     );
-    // set the search term
-    if (options?.initSearch) {
-      await this.initSearch({ term: params.txt_term });
-    }
+
     if (this.lastSearchTerm !== params.txt_term.toString()) {
       throw Error(
         "Search courses 'txt_term' does not match the initialized search term. Please call initSearch() first."
@@ -160,7 +201,10 @@ export class BannerAPI {
       "GET",
       "/searchResults/searchResults",
       stringQueryParams,
-      { Cookie: this.sessionToken }
+      {
+        Accept: "application/json, text/javascript, */*; q=0.01",
+        Cookie: this.sessionToken,
+      }
     );
   }
 
@@ -189,7 +233,8 @@ export class BannerAPI {
     method: "GET" | "POST",
     endpoint: string,
     queryParams: Record<string, string> = {},
-    headers: Record<string, string> = {}
+    headers: Record<string, string> = {},
+    body: FormData | string | undefined = undefined
   ) {
     const url = new URL(`${this.baseURL}${endpoint}`);
     Object.keys(queryParams).forEach((key) =>
@@ -203,6 +248,7 @@ export class BannerAPI {
           ...headers,
           Cookie: this.sessionToken,
         },
+        body,
       });
 
       if (!response.ok) {
