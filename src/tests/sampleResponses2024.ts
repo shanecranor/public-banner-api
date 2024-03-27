@@ -1,48 +1,50 @@
-export const GET_TERMS = [
+import { Subject, Term } from "../bannerResponseTypes";
+
+export const GET_TERMS: Term[] = [
   {
-    code: "202510",
+    code: 202510,
     description: "Fall 2024 Semester (View Only)",
   },
   {
-    code: "202460",
+    code: 202460,
     description: "Summer 2 2024 Semester",
   },
   {
-    code: "202454",
+    code: 202450,
     description: "Summer 2024 CPS Semester",
   },
   {
-    code: "202450",
+    code: 20245,
     description: "Summer Full 2024 Semester",
   },
   {
-    code: "202440",
+    code: 20244,
     description: "Summer 1 2024 Semester",
   },
   {
-    code: "202435",
+    code: 202435,
     description: "Spring 2024 CPS Quarter",
   },
   {
-    code: "202434",
+    code: 202434,
     description: "Spring 2024 CPS Semester",
   },
   {
-    code: "202432",
+    code: 202432,
     description: "Spring 2024 Law Semester",
   },
   {
-    code: "202430",
+    code: 202430,
     description: "Spring 2024 Semester",
   },
   {
-    code: "202425",
+    code: 202425,
     description: "Winter 2024 CPS Quarter (View Only)",
   },
 ];
 
 //This is returned by https://nubanner.neu.edu/StudentRegistrationSsb/ssb/classSearch/get_subject?offset=1&max=50&term=202510
-export const GET_SUBJECTS = [
+export const GET_SUBJECTS: Subject[] = [
   {
     code: "ACCT",
     description: "Accounting",

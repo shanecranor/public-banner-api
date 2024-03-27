@@ -3,7 +3,7 @@ export type Term = {
   description: string;
 };
 export type Subject = {
-  code: number;
+  code: string;
   description: string;
 };
 
@@ -26,7 +26,7 @@ export type Course = {
   courseReferenceNumber: string;
   partOfTerm: string;
   courseNumber: string;
-  subject: number;
+  subject: string;
   subjectDescription: string;
   sequenceNumber: string;
   campusDescription: string;
