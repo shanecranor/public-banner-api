@@ -1,11 +1,10 @@
-import fetchMock from "jest-fetch-mock";
-import { banner9Simulator } from "./banner9Simulator";
-import { BannerAPI } from "..";
-import { GET_TERMS } from "./sampleResponses2024";
-
+// import fetchMock from "jest-fetch-mock";
 // fetchMock.enableMocks();
+// import { banner9Simulator } from "./banner9Simulator";
+import { BannerAPI } from "..";
 
 describe("API Fetch Tests", () => {
+  // TODO: write tests that don't hit the real live APIs lmao
   // beforeEach(() => {
   //   fetchMock.resetMocks(); // Reset mocks before each test
   //   fetchMock.mockIf((request: Request) => {

@@ -1,3 +1,5 @@
+// TODO: finish and test this file
+
 import { MockResponseInitFunction } from "jest-fetch-mock";
 import { GET_TERMS } from "./sampleResponses2024";
 export const banner9Simulator: MockResponseInitFunction = async (req) => {
