@@ -91,6 +91,7 @@ Internal method for making HTTP requests to the API, including handling of sessi
 ### `Term`
 
 Represents a registration term, consisting of a term id (code) and description
+
 Example Term object:
 
 ```json
@@ -103,6 +104,7 @@ Example Term object:
 ### `Subject`
 
 Describes a subject object, with subject code string and full description
+
 Example Subject object:
 
 ```json
