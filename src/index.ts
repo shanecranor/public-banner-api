@@ -1,88 +1,6 @@
-import { Term, Subject } from "./bannerResponseTypes";
-import axios from "axios";
-async function testFetch() {
-  const initSearch = await fetch(
-    "https://bannerssb9.mines.edu/StudentRegistrationSsb/ssb/term/search?mode=search",
-    {
-      headers: {
-        accept: "*/*",
-        "accept-language": "en-US,en;q=0.9",
-        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-        // "Referrer-Policy": "strict-origin-when-cross-origin",
-      },
-      body: "term=202480&studyPath=&studyPathText=&startDatepicker=&endDatepicker=",
-      method: "POST",
-    }
-  );
-  // extract cookies
-  const cookies = initSearch.headers.get("set-cookie");
-  console.log("cookies");
-  console.log(cookies);
-  const searchResponse = await fetch(
-    //"https://banner-9.mines.rocks/StudentRegistrationSsb/ssb/searchResults/searchResults?txt_term=202480&startDatepicker=&endDatepicker=&pageOffset=0&pageMaxSize=10&sortColumn=subjectDescription&sortDirection=asc",
-    "https://bannerssb9.mines.edu/StudentRegistrationSsb/ssb/searchResults/searchResults?txt_term=202480&startDatepicker=&endDatepicker=&pageOffset=0&pageMaxSize=10&sortColumn=subjectDescription&sortDirection=asc",
-    {
-      headers: {
-        accept: "application/json, text/javascript, */*; q=0.01",
-        "accept-language": "en-US,en;q=0.9",
-        cookie: cookies || "",
-        //"JSESSIONID=C5369E5ABC31247A733A2C31A84425AD; Path=/StudentRegistrationSsb; HttpOnly; Secure, BIGipServerbanner-ssb-prod-01_pool=!A4ncBNnch0I5PpIO13Cp8v0Ue2fC1aLEYHswudLztfhs1rMF+xALc4lJnrM/spK53h+tGigeeK9UDHU=  path=/; Httponly; Secure",
-        Referer:
-          "https://bannerssb9.mines.edu/StudentRegistrationSsb/ssb/classSearch/classSearch",
-        "Referrer-Policy": "strict-origin-when-cross-origin",
-      },
-      body: null,
-      method: "GET",
-    }
-  );
-  const data = await searchResponse.json();
-  console.log(data);
-}
+import { Term, Subject, SearchResponse } from "./bannerResponseTypes";
+import axios, { AxiosRequestConfig, Method } from "axios";
 
-async function fetchData() {
-  // First POST request to initialize the search and extract cookies
-  try {
-    const initSearchResponse = await axios.post(
-      "https://bannerssb9.mines.edu/StudentRegistrationSsb/ssb/term/search?mode=search",
-      "term=202480&studyPath=&studyPathText=&startDatepicker=&endDatepicker=",
-      {
-        headers: {
-          accept: "*/*",
-          "accept-language": "en-US,en;q=0.9",
-          "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-        },
-      }
-    );
-
-    // Extract cookies from the response
-    // Note: Axios does not provide direct access to the 'Set-Cookie' header due to browser security reasons.
-    // You would need to handle cookies differently in a browser environment or use server-side handling or a library that supports it.
-    const cookies = initSearchResponse.headers["set-cookie"];
-    console.log("cookies");
-    console.log(cookies);
-
-    // Second GET request using extracted cookies
-    const searchResponse = await axios.get(
-      "https://bannerssb9.mines.edu/StudentRegistrationSsb/ssb/searchResults/searchResults?txt_term=202480&startDatepicker=&endDatepicker=&pageOffset=0&pageMaxSize=10&sortColumn=subjectDescription&sortDirection=asc",
-      {
-        headers: {
-          accept: "application/json, text/javascript, */*; q=0.01",
-          "accept-language": "en-US,en;q=0.9",
-          cookie: cookies || "",
-          Referer:
-            "https://bannerssb9.mines.edu/StudentRegistrationSsb/ssb/classSearch/classSearch",
-          "Referrer-Policy": "strict-origin-when-cross-origin",
-        },
-      }
-    );
-
-    console.log(searchResponse.data);
-  } catch (error) {
-    console.error("Error fetching data:", error);
-  }
-}
-fetchData();
-// testFetch();
 export type Options = {
   offset?: number;
   max?: number;
@@ -91,7 +9,7 @@ export type Options = {
 
 export class BannerAPI {
   baseURL: string;
-  sessionToken: string;
+  sessionTokens: string[];
   lastSearchTerm: string;
   /**
    * Creates an instance of the API client.
@@ -99,7 +17,7 @@ export class BannerAPI {
    */
   constructor(baseURL: string) {
     this.baseURL = baseURL;
-    this.sessionToken = "";
+    this.sessionTokens = [];
     this.lastSearchTerm = "";
   }
 
@@ -208,7 +126,7 @@ export class BannerAPI {
       sortDirection?: "asc" | "desc";
     },
     options?: { initSearch: boolean }
-  ): Promise<any> {
+  ): Promise<SearchResponse> {
     const defaultParams = {
       txt_subject: "",
       txt_courseNumber: "",
@@ -246,7 +164,6 @@ export class BannerAPI {
       stringQueryParams,
       {
         Accept: "application/json, text/javascript, */*; q=0.01",
-        Cookie: this.sessionToken,
       }
     );
   }
@@ -284,38 +201,29 @@ export class BannerAPI {
       url.searchParams.append(key, queryParams[key])
     );
 
+    // Prepare the Axios request configuration
+    const config: AxiosRequestConfig = {
+      method: method as Method,
+      url: url.toString(),
+      headers: {
+        ...headers,
+        cookie: this.sessionTokens,
+      },
+      // For GET requests, the body should not be set. Axios uses `data` for the request body.
+      data: method === "POST" ? body : undefined,
+      // Axios automatically parses JSON responses, so no need to check Content-Type manually.
+    };
+
     try {
-      const response = await fetch(url.toString(), {
-        method,
-        headers: {
-          ...headers,
-          Cookie: this.sessionToken,
-        },
-        body,
-      });
+      const response = await axios(config);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      // Extract and store the session token from the response
-      const setCookieHeader = response.headers.get("set-cookie");
+      const setCookieHeader = response.headers["set-cookie"];
       if (setCookieHeader) {
-        this.sessionToken = setCookieHeader;
+        this.sessionTokens = setCookieHeader;
       }
-      // Check the Content-Type header to determine how to parse the response
-      const responseContentType = response.headers.get("Content-Type");
-
-      if (!responseContentType) throw new Error("No Content-Type header");
-
-      if (responseContentType.includes("application/json")) {
-        return await response.json();
-      } else if (responseContentType.includes("text/html")) {
-        return await response.text();
-      } else {
-        throw new Error("Unsupported Content-Type");
-      }
+      return response.data;
     } catch (error) {
-      if (error instanceof Error) {
+      if (axios.isAxiosError(error)) {
         throw new Error(`Failed to fetch from ${url}: ${error.message}`);
       } else {
         throw new Error(`An unknown error occurred while fetching from ${url}`);

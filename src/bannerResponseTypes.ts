@@ -1,13 +1,13 @@
 export type Term = {
-  code: string;
+  code: number;
   description: string;
 };
 export type Subject = {
-  code: string;
+  code: number;
   description: string;
 };
 
-export type ApiResponse = {
+export type SearchResponse = {
   success: boolean;
   totalCount: number;
   data: Course[];
@@ -21,12 +21,12 @@ export type ApiResponse = {
 
 export type Course = {
   id: number;
-  term: string;
+  term: number;
   termDesc: string;
   courseReferenceNumber: string;
   partOfTerm: string;
   courseNumber: string;
-  subject: string;
+  subject: number;
   subjectDescription: string;
   sequenceNumber: string;
   campusDescription: string;

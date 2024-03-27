@@ -14,29 +14,26 @@ describe("API Fetch Tests", () => {
   //   }, banner9Simulator);
   // });
 
-  it("should fetch data successfully", async () => {
-    //wait 10 seconds
-    setTimeout(() => {
-      console.log("Waiting 10 seconds");
-    }, 10000);
+  it("fetch data from real banner API", async () => {
+    const banner = new BannerAPI(
+      "https://nubanner.neu.edu/StudentRegistrationSsb/ssb"
+      // "https://bannerssb9.mines.edu/StudentRegistrationSsb/ssb"
+    );
+    // a new banner object should have no session tokens
+    expect(banner.sessionTokens).toHaveLength(0);
+    // fetch terms
+    const terms = await banner.getTerms();
+    // expect terms to be an array with at least one element
+    expect(terms.length).toBeGreaterThan(0);
+    expect(banner.sessionTokens).toHaveLength(2);
+    //init search for courses in the first term
+    await banner.initSearch(terms[0].code);
+    //search all courses with that term code
+    const searchResults = await banner.searchCourses({
+      txt_term: terms[0].code,
+      // sortColumn: "subjectDescription",
+    });
+    expect(searchResults).toBeDefined();
+    expect(searchResults.totalCount).toBeGreaterThan(0);
   });
 });
-
-// const banner = new BannerAPI(
-//   // "https://nubanner.neu.edu/StudentRegistrationSsb/ssb"
-//   "https://bannerssb9.mines.edu/StudentRegistrationSsb/ssb"
-// );
-// const terms = await banner.getTerms();
-// console.log(terms);
-// expect(terms).toBeDefined();
-// console.log(banner.sessionToken);
-// console.log(terms[0]);
-// //init search
-// await banner.initSearch(202480);
-// //search courses
-// const searchResults = await banner.searchCourses({
-//   txt_term: 202480,
-//   sortColumn: "subjectDescription",
-//   // txt_subject: "CS",
-// });
-// console.log(searchResults);
